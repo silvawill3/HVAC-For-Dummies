@@ -7,30 +7,35 @@ import {
 import { LEADS_BY_CITY } from '@/data/leads';
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
-function loadCityAssignments(): Record<string, string> {
-  try { const r = localStorage.getItem(CITY_ASSIGN_KEY); if (r) return JSON.parse(r); } catch {}
+function loadCityAssignments(): Record<string, string[]> {
+  try {
+    const r = localStorage.getItem(CITY_ASSIGN_KEY);
+    if (r) {
+      const parsed = JSON.parse(r);
+      const out: Record<string, string[]> = {};
+      for (const [city, val] of Object.entries(parsed)) {
+        out[city] = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+      }
+      return out;
+    }
+  } catch {}
   return {};
 }
 
 function buildLeadsFromCityData(): StoredLead[] {
-  const assignments = loadCityAssignments();
   let nextId = 1;
   const out: StoredLead[] = [];
   LEADS_BY_CITY.forEach(block => {
     block.leads.forEach(l => {
-      out.push({ id: nextId++, name: l.name, address: l.address, city: block.city, phone: (l as any).phone || '', category: l.category || '', repUsername: assignments[block.city] || '', status: null, notes: '', appointment: '', photos: [] });
+      out.push({ id: nextId++, name: l.name, address: l.address, city: block.city, phone: (l as any).phone || '', category: l.category || '', repUsername: '', status: null, notes: '', appointment: '', photos: [] });
     });
   });
   return out;
 }
 
 function applyCityAssignments(leads: StoredLead[]): StoredLead[] {
-  const assignments = loadCityAssignments();
-  return leads.map(l => {
-    const assigned = l.city ? assignments[l.city] : undefined;
-    if (assigned && l.repUsername !== assigned && !l.repOverridden) return { ...l, repUsername: assigned };
-    return l;
-  });
+  // No-op: city assignments now control visibility, not per-lead repUsername
+  return leads;
 }
 
 function loadAccounts(): Account[] {
@@ -317,7 +322,16 @@ export default function SalesRepPortal() {
   const isAdmin = !!session && session.role === 'admin';
   const repOptions = accounts.filter(a => a.role === 'rep' || a.isCloser);
 
-  const scopedLeads = isAdmin ? leads : leads.filter(l => l.repUsername === session?.username);
+  // For reps/closers: show all leads in cities they've been assigned to
+  const scopedLeads = isAdmin ? leads : (() => {
+    const cityAssignments = loadCityAssignments();
+    const myCities = new Set(
+      Object.entries(cityAssignments)
+        .filter(([, users]) => users.includes(session?.username || ''))
+        .map(([city]) => city)
+    );
+    return leads.filter(l => l.city && myCities.has(l.city));
+  })();
 
   const repFiltered = isAdmin && repFilter !== 'all' ? scopedLeads.filter(l => l.repUsername === repFilter) : scopedLeads;
   const statusFiltered = statusFilter === 'all' ? repFiltered : repFiltered.filter(l => (l.status || 'none') === statusFilter);

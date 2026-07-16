@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { LEADS_BY_CITY } from '@/data/leads';
 import { CITY_ASSIGN_KEY, SESSION_KEY, REPS_KEY, DEFAULT_ACCOUNTS, Account } from '@/data/accounts';
@@ -21,9 +21,25 @@ function currentAccount(): { username: string; role: string } | null {
   } catch { return null; }
 }
 
-function loadAssignments(): Record<string, string> {
-  try { const r = localStorage.getItem(CITY_ASSIGN_KEY); if (r) return JSON.parse(r); } catch {}
+// assignments: city → string[] of usernames
+function loadAssignments(): Record<string, string[]> {
+  try {
+    const r = localStorage.getItem(CITY_ASSIGN_KEY);
+    if (r) {
+      const parsed = JSON.parse(r);
+      // migrate old format (string values) to arrays
+      const out: Record<string, string[]> = {};
+      for (const [city, val] of Object.entries(parsed)) {
+        out[city] = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+      }
+      return out;
+    }
+  } catch {}
   return {};
+}
+
+function saveAssignments(a: Record<string, string[]>) {
+  try { localStorage.setItem(CITY_ASSIGN_KEY, JSON.stringify(a)); } catch {}
 }
 
 function loadRepOptions(): Account[] {
@@ -51,7 +67,99 @@ function badgeStyle(category: string) {
   return { bg: 'rgba(125,136,131,.18)', color: '#b7c2bd', label: 'No permit' };
 }
 
-const BTN_GREY: React.CSSProperties = { background: '#121815', border: '1px solid #232d28', color: '#9caea5', padding: '9px 14px', borderRadius: 8, fontSize: 13, fontFamily: "'Inter',sans-serif", fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' };
+const BTN_GREY: React.CSSProperties = {
+  background: '#121815', border: '1px solid #232d28', color: '#9caea5',
+  padding: '9px 14px', borderRadius: 8, fontSize: 13, fontFamily: "'Inter',sans-serif",
+  fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
+};
+
+// ── Multi-select closer dropdown ─────────────────────────────────────────────
+interface CloserPickerProps {
+  city: string;
+  selected: string[];
+  repOptions: Account[];
+  onChange: (city: string, usernames: string[]) => void;
+}
+
+function CloserPicker({ city, selected, repOptions, onChange }: CloserPickerProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  function toggle(username: string) {
+    const next = selected.includes(username)
+      ? selected.filter(u => u !== username)
+      : [...selected, username];
+    onChange(city, next);
+  }
+
+  const label = selected.length === 0
+    ? 'Unassigned'
+    : selected.length === 1
+      ? (repOptions.find(r => r.username === selected[0])?.name || selected[0])
+      : `${selected.length} closers`;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          background: selected.length ? '#182019' : '#121815',
+          border: `1px solid ${selected.length ? '#5f8577' : '#232d28'}`,
+          color: selected.length ? '#8abfb0' : '#5d6b64',
+          padding: '7px 10px', borderRadius: 7, fontSize: 12.5,
+          fontFamily: "'Inter',sans-serif", cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+        <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
+          background: '#121815', border: '1px solid #324038', borderRadius: 10,
+          minWidth: 200, padding: '6px 0', boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+        }}>
+          {repOptions.map(r => {
+            const checked = selected.includes(r.username);
+            return (
+              <div
+                key={r.username}
+                onClick={() => toggle(r.username)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 14px', cursor: 'pointer',
+                  background: checked ? 'rgba(138,191,176,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = checked ? 'rgba(138,191,176,0.08)' : 'transparent')}
+              >
+                <div style={{
+                  width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                  border: `1.5px solid ${checked ? '#8abfb0' : '#3a4840'}`,
+                  background: checked ? '#8abfb0' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {checked && <span style={{ color: '#0a0e0d', fontSize: 10, fontWeight: 700, lineHeight: 1 }}>✓</span>}
+                </div>
+                <span style={{ fontSize: 13, color: checked ? '#eef3f0' : '#9caea5', fontFamily: "'Inter',sans-serif" }}>{r.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function LeadsRouteSheet() {
   const [, navigate] = useLocation();
@@ -60,9 +168,9 @@ export default function LeadsRouteSheet() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [assignments, setAssignments] = useState<Record<string, string>>(loadAssignments);
+  const [assignments, setAssignments] = useState<Record<string, string[]>>(loadAssignments);
+  const [savedCity, setSavedCity] = useState<string | null>(null);
   const repOptions = loadRepOptions();
-  const repByUsername = Object.fromEntries(repOptions.map(r => [r.username, r.name]));
 
   function toggleCity(city: string) {
     setExpanded(e => ({ ...e, [city]: !e[city] }));
@@ -76,17 +184,21 @@ export default function LeadsRouteSheet() {
 
   function collapseAll() { setExpanded({}); }
 
-  function assignRep(city: string, username: string) {
-    const next = { ...assignments, [city]: username };
+  function handleAssign(city: string, usernames: string[]) {
+    const next = { ...assignments, [city]: usernames };
     setAssignments(next);
-    try { localStorage.setItem(CITY_ASSIGN_KEY, JSON.stringify(next)); } catch {}
+    saveAssignments(next);
+    setSavedCity(city);
+    setTimeout(() => setSavedCity(c => c === city ? null : c), 1800);
   }
 
   function exportCsv() {
-    const rows = [['City', 'Assigned Rep', 'Stop', 'Name', 'Address', 'Category']];
+    const rows = [['City', 'Assigned Closers', 'Stop', 'Name', 'Address', 'Category']];
     LEADS_BY_CITY.forEach(b => {
-      const repName = repByUsername[assignments[b.city]] || 'Unassigned';
-      b.leads.forEach(l => rows.push([b.city, repName, String(l.stop), l.name, l.address, l.category]));
+      const names = (assignments[b.city] || [])
+        .map(u => repOptions.find(r => r.username === u)?.name || u)
+        .join(', ') || 'Unassigned';
+      b.leads.forEach(l => rows.push([b.city, names, String(l.stop), l.name, l.address, l.category]));
     });
     const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -106,13 +218,12 @@ export default function LeadsRouteSheet() {
           <p style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8abfb0', fontWeight: 600, margin: '0 0 6px' }}>Riv Comfort · Field Sales</p>
           <h1 style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 26, margin: '0 0 10px', color: '#eef3f0' }}>Admins only</h1>
           <p style={{ color: '#9caea5', fontSize: 13.5, lineHeight: 1.5, margin: '0 0 20px' }}>This page is restricted to admin accounts. Log in as an admin from the Rep Portal to view it.</p>
-          <button onClick={() => navigate('/portal')} style={{ ...BTN_GREY, display: 'inline-block', border: '1px solid #5f8577', color: '#8abfb0', padding: '11px 18px', borderRadius: 9, fontSize: 14, fontWeight: 600 }}>Go to Rep Portal</button>
+          <button onClick={() => navigate('/portal')} style={{ ...BTN_GREY, border: '1px solid #5f8577', color: '#8abfb0', padding: '11px 18px', borderRadius: 9, fontSize: 14, fontWeight: 600 }}>Go to Rep Portal</button>
         </div>
       </div>
     );
   }
 
-  // ── Filter ───────────────────────────────────────────────────────────────
   const term = searchTerm.trim().toLowerCase();
   const totalCount = LEADS_BY_CITY.reduce((s, b) => s + b.count, 0);
 
@@ -126,7 +237,6 @@ export default function LeadsRouteSheet() {
     return { ...block, filteredLeads, isExpanded };
   }).filter(b => !term || b.filteredLeads.length > 0);
 
-  // ── Admin view ────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: '#0a0e0d', color: '#eef3f0', fontFamily: "'Inter',sans-serif" }}>
       <div style={{ maxWidth: 920, margin: '0 auto', padding: '28px 20px 80px' }}>
@@ -150,40 +260,49 @@ export default function LeadsRouteSheet() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {cityBlocks.map(block => (
-            <div key={block.city} style={{ background: '#121815', border: '1px solid #232d28', borderRadius: 10, overflow: 'hidden' }}>
-              <div onClick={() => toggleCity(block.city)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, color: '#5d6b64', display: 'inline-block', transition: 'transform .12s ease', transform: block.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
-                  <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 600, color: '#eef3f0' }}>{block.city}</span>
+          {cityBlocks.map(block => {
+            const isSaved = savedCity === block.city;
+            return (
+              <div key={block.city} style={{ background: '#121815', border: '1px solid #232d28', borderRadius: 10, overflow: 'hidden' }}>
+                <div onClick={() => toggleCity(block.city)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, color: '#5d6b64', display: 'inline-block', transition: 'transform .12s ease', transform: block.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
+                    <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 600, color: '#eef3f0' }}>{block.city}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} onClick={e => e.stopPropagation()}>
+                    <span style={{ fontSize: 12, color: '#9caea5' }}>{block.count} stops</span>
+                    {isSaved && (
+                      <span style={{ fontSize: 11, color: '#6fae8f', fontWeight: 600, letterSpacing: '0.05em' }}>✓ Saved</span>
+                    )}
+                    <CloserPicker
+                      city={block.city}
+                      selected={assignments[block.city] || []}
+                      repOptions={repOptions}
+                      onChange={handleAssign}
+                    />
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} onClick={e => e.stopPropagation()}>
-                  <span style={{ fontSize: 12, color: '#9caea5' }}>{block.count} stops</span>
-                  <select value={assignments[block.city] || ''} onChange={e => assignRep(block.city, e.target.value)} style={{ background: '#182019', border: '1px solid #232d28', color: '#eef3f0', padding: '7px 10px', borderRadius: 7, fontSize: 12.5, fontFamily: "'Inter',sans-serif" }}>
-                    <option value="">Unassigned</option>
-                    {repOptions.map(r => <option key={r.username} value={r.username}>{r.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              {block.isExpanded && (
-                <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {block.filteredLeads.map((lead, i) => {
-                    const bs = badgeStyle(lead.category);
-                    return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto', alignItems: 'center', gap: 12, background: '#182019', border: '1px solid #232d28', borderRadius: 9, padding: '10px 12px' }}>
-                        <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, fontWeight: 600, color: '#5d6b64', textAlign: 'center' }}>{lead.stop}</div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
-                          <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
+
+                {block.isExpanded && (
+                  <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {block.filteredLeads.map((lead, i) => {
+                      const bs = badgeStyle(lead.category);
+                      return (
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto', alignItems: 'center', gap: 12, background: '#182019', border: '1px solid #232d28', borderRadius: 9, padding: '10px 12px' }}>
+                          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, fontWeight: 600, color: '#5d6b64', textAlign: 'center' }}>{lead.stop}</div>
+                          <div>
+                            <div style={{ fontSize: 13.5, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
+                            <div onClick={() => openMaps(lead.address)} style={{ fontSize: 12, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
+                          </div>
+                          <div style={{ fontSize: 10.5, fontWeight: 600, padding: '4px 9px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
                         </div>
-                        <div style={{ fontSize: 10.5, fontWeight: 600, padding: '4px 9px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {term && cityBlocks.length === 0 && (
