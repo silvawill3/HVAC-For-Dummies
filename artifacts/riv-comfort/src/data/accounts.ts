@@ -8,7 +8,7 @@ export interface Account {
 
 export const DEFAULT_ACCOUNTS: Account[] = [
   { username: 'admin', password: 'admin123', role: 'admin', name: 'Admin' },
-  { username: 'wsilva', password: 'sales123', role: 'admin', isCloser: true, name: 'Will Silva' },
+  { username: 'wsilva', password: 'admin123', role: 'admin', isCloser: true, name: 'Will Silva' },
   { username: 'vsilva', password: 'sales123', role: 'rep', name: 'Vic Silva' },
   { username: 'msetzer', password: 'sales123', role: 'rep', name: 'Miles Setzer' },
   { username: 'jsmith', password: 'sales123', role: 'rep', name: 'Jonathan Smith' },
