@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #0b0e0d;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #20262a; border-radius: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+::selection { background: #5f8577; color: #08110d; }
+
+input::placeholder, textarea::placeholder { color: #5d6b64; }
