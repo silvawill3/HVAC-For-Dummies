@@ -32,6 +32,7 @@ export interface StoredLead {
   address: string;
   city?: string;
   phone: string;
+  category?: string;
   repUsername: string;
   status: string | null;
   notes: string;
