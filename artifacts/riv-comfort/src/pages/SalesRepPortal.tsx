@@ -345,7 +345,6 @@ export default function SalesRepPortal() {
           <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && login()} placeholder="••••••••" style={{ ...INPUT_S, marginBottom: 8 }} />
           {loginError && <div style={{ color: '#a15a5a', fontSize: 12.5, marginBottom: 10 }}>{loginError}</div>}
           <button onClick={login} style={{ width: '100%', marginTop: 8, background: '#182019', border: '1px solid #5f8577', color: '#8abfb0', padding: '12px 14px', borderRadius: 9, fontSize: 14, fontFamily: "'Inter',sans-serif", fontWeight: 600, cursor: 'pointer' }}>Log in</button>
-          <p style={{ fontSize: 11.5, color: '#5d6b64', marginTop: 20, lineHeight: 1.5 }}>Demo accounts — admin/admin123, or any rep (e.g. wsilva/sales123, vsilva/sales123, msetzer/sales123).</p>
         </div>
       </div>
     );
