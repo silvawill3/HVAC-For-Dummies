@@ -38,6 +38,11 @@ function loadRepOptions(): Account[] {
   return DEFAULT_ACCOUNTS.slice();
 }
 
+function openMaps(address: string) {
+  const q = encodeURIComponent(address);
+  window.open(`https://maps.apple.com/?q=${q}`, '_blank', 'noopener');
+}
+
 function badgeStyle(category: string) {
   const c = (category || '').trim();
   if (c.startsWith('TARGET')) return { bg: 'rgba(220,180,92,.16)', color: '#dcb45c', label: 'Target' };
@@ -169,7 +174,7 @@ export default function LeadsRouteSheet() {
                         <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, fontWeight: 600, color: '#5d6b64', textAlign: 'center' }}>{lead.stop}</div>
                         <div>
                           <div style={{ fontSize: 13.5, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
-                          <div style={{ fontSize: 12, color: '#9caea5', marginTop: 2 }}>{lead.address}</div>
+                          <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
                         </div>
                         <div style={{ fontSize: 10.5, fontWeight: 600, padding: '4px 9px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
                       </div>

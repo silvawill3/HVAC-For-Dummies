@@ -57,6 +57,11 @@ function saveLeads(leads: StoredLead[]) {
   try { localStorage.setItem(LEADS_KEY, JSON.stringify(leads)); } catch {}
 }
 
+function openMaps(address: string) {
+  const q = encodeURIComponent(address);
+  window.open(`https://maps.apple.com/?q=${q}`, '_blank', 'noopener');
+}
+
 function fmtAppt(v: string) {
   if (!v) return 'No appointment set';
   const d = new Date(v);
@@ -114,7 +119,7 @@ function LeadPanel({ lead, isAdmin, repOptions, onClose, onSave }: PanelProps) {
           <div>
             <div style={{ fontSize: 11, color: '#8abfb0', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>{repOptions.find(r => r.username === draftRep)?.name || draftRep}</div>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 24, fontWeight: 600, margin: '2px 0' }}>{lead.name}</div>
-            <div style={{ fontSize: 13.5, color: '#9caea5' }}>{lead.address}</div>
+            <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 13.5, color: '#9caea5', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#5d6b64', fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: 4 }}>✕</button>
         </div>
@@ -401,7 +406,7 @@ export default function SalesRepPortal() {
                   <div key={lead.id} onClick={() => setPanelLeadId(lead.id)} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 14, background: '#121815', border: '1px solid #232d28', borderRadius: 10, padding: '12px 14px', cursor: 'pointer' }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
-                      <div style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2 }}>{lead.address}</div>
+                      <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
                       <div style={{ fontSize: 11, color: '#5d6b64', marginTop: 2 }}>{rep?.name || lead.repUsername} · {fmtAppt(lead.appointment)}</div>
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
@@ -437,7 +442,7 @@ export default function SalesRepPortal() {
                   <div key={lead.id} onClick={() => setPanelLeadId(lead.id)} style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 14, background: '#121815', border: '1px solid #232d28', borderRadius: 10, padding: '12px 14px', cursor: 'pointer' }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
-                      <div style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2 }}>{lead.address}</div>
+                      <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
                       <div style={{ fontSize: 11, color: '#5d6b64', marginTop: 2 }}>{fmtAppt(lead.appointment)}</div>
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
