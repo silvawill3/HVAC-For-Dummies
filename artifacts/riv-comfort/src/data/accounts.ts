@@ -23,6 +23,7 @@ export const STATUS_DEFS = [
   { key: 'callback', label: 'Callback', color: '#d08a52' },
   { key: 'closed', label: 'Closed', color: '#6fae8f' },
   { key: 'dq', label: 'DQ', color: '#a15a5a' },
+  { key: 'nogo', label: 'No go', color: '#6b4f7a' },
 ];
 
 export interface StoredLead {
