@@ -52,10 +52,21 @@ function saveRepsToStorage(accounts: Account[]) {
 }
 
 function loadLeads(): StoredLead[] {
-  let leads: StoredLead[] | null = null;
-  try { const r = localStorage.getItem(LEADS_KEY); if (r) leads = JSON.parse(r); } catch {}
-  if (!leads || !leads.length) leads = buildLeadsFromCityData();
-  return applyCityAssignments(leads);
+  const fresh = buildLeadsFromCityData();
+  let stored: StoredLead[] | null = null;
+  try { const r = localStorage.getItem(LEADS_KEY); if (r) stored = JSON.parse(r); } catch {}
+
+  if (!stored || !stored.length) return fresh;
+
+  // Merge: keep stored user data (assignments, status, notes, log) for existing leads,
+  // but always include any new leads added to the static data.
+  const storedById = new Map(stored.map(l => [l.id, l]));
+  const merged = fresh.map(l => storedById.get(l.id) ?? l);
+
+  // Persist the merged result immediately so new leads are saved going forward.
+  try { localStorage.setItem(LEADS_KEY, JSON.stringify(merged)); } catch {}
+
+  return merged;
 }
 
 function saveLeads(leads: StoredLead[]) {
