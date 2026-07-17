@@ -22,19 +22,25 @@ function currentAccount(): { username: string; role: string } | null {
 }
 
 // assignments: city → string[] of usernames
+function normalizeAssignmentKeys(raw: Record<string, unknown>): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const [city, val] of Object.entries(raw)) {
+    const key = city.trim().replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+    const arr = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+    if (arr.length) out[key] = [...(out[key] || []), ...arr];
+  }
+  return out;
+}
+
 function loadAssignments(): Record<string, string[]> {
   try {
     const r = localStorage.getItem(CITY_ASSIGN_KEY);
     if (r) {
       const parsed = JSON.parse(r);
-      // migrate old format (string values) to arrays; normalize city key casing
-      const out: Record<string, string[]> = {};
-      for (const [city, val] of Object.entries(parsed)) {
-        const key = city.trim().replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
-        const arr = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
-        out[key] = [...(out[key] || []), ...arr];
-      }
-      return out;
+      const normalized = normalizeAssignmentKeys(parsed);
+      // Write back with normalized keys so old-casing keys are permanently fixed
+      localStorage.setItem(CITY_ASSIGN_KEY, JSON.stringify(normalized));
+      return normalized;
     }
   } catch {}
   return {};

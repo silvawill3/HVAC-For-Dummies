@@ -21,8 +21,10 @@ function loadCityAssignments(): Record<string, string[]> {
       for (const [city, val] of Object.entries(parsed)) {
         const key = normalizeCity(city);
         const arr = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
-        out[key] = [...(out[key] || []), ...arr];
+        if (arr.length) out[key] = [...(out[key] || []), ...arr];
       }
+      // Write back with normalized keys so old-casing keys are permanently fixed
+      localStorage.setItem(CITY_ASSIGN_KEY, JSON.stringify(out));
       return out;
     }
   } catch {}
