@@ -6,6 +6,11 @@ import {
 } from '@/data/accounts';
 import { LEADS_BY_CITY } from '@/data/leads';
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function normalizeCity(city: string): string {
+  return city.trim().replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
 // ── Storage helpers ───────────────────────────────────────────────────────────
 function loadCityAssignments(): Record<string, string[]> {
   try {
@@ -27,7 +32,7 @@ function buildLeadsFromCityData(): StoredLead[] {
   const out: StoredLead[] = [];
   LEADS_BY_CITY.forEach(block => {
     block.leads.forEach(l => {
-      out.push({ id: nextId++, name: l.name, address: l.address, city: block.city, phone: (l as any).phone || '', category: l.category || '', repUsername: '', status: null, notes: '', appointment: '', photos: [], fromList: true });
+      out.push({ id: nextId++, name: l.name, address: l.address, city: normalizeCity(block.city), phone: (l as any).phone || '', category: l.category || '', repUsername: '', status: null, notes: '', appointment: '', photos: [], fromList: true });
     });
   });
   return out;
@@ -523,7 +528,7 @@ export default function SalesRepPortal() {
               const cityOrder: string[] = [];
               const byCity: Record<string, StoredLead[]> = {};
               visibleLeads.forEach(lead => {
-                const c = lead.city || 'Uncategorized';
+                const c = lead.city ? normalizeCity(lead.city) : 'Uncategorized';
                 if (!byCity[c]) { byCity[c] = []; cityOrder.push(c); }
                 byCity[c].push(lead);
               });
