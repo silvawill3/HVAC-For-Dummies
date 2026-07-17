@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import {
-  Account, StoredLead, STATUS_DEFS,
+  Account, StoredLead, LogEntry, STATUS_DEFS,
   DEFAULT_ACCOUNTS, LEADS_KEY, SESSION_KEY, REPS_KEY, CITY_ASSIGN_KEY,
 } from '@/data/accounts';
 import { LEADS_BY_CITY } from '@/data/leads';
@@ -91,11 +91,18 @@ interface PanelProps {
   lead: StoredLead;
   isAdmin: boolean;
   repOptions: Account[];
+  session: Account;
   onClose: () => void;
   onSave: (updated: StoredLead) => void;
 }
 
-function LeadPanel({ lead, isAdmin, repOptions, onClose, onSave }: PanelProps) {
+function fmtLog(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function LeadPanel({ lead, isAdmin, repOptions, session, onClose, onSave }: PanelProps) {
   const [draftPhone, setDraftPhone] = useState(lead.phone || '');
   const [draftAppt, setDraftAppt] = useState(lead.appointment || '');
   const [draftNotes, setDraftNotes] = useState(lead.notes || '');
@@ -104,7 +111,15 @@ function LeadPanel({ lead, isAdmin, repOptions, onClose, onSave }: PanelProps) {
   const [draftRep, setDraftRep] = useState(lead.repUsername || '');
 
   function save() {
-    onSave({ ...lead, phone: draftPhone, appointment: draftAppt, notes: draftNotes, status: draftStatus, photos: draftPhotos, repUsername: draftRep, repOverridden: draftRep !== lead.repUsername ? true : lead.repOverridden });
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      status: draftStatus,
+      notes: draftNotes.trim(),
+      byUsername: session.username,
+      byName: session.name,
+    };
+    const prevLog = lead.log || [];
+    onSave({ ...lead, phone: draftPhone, appointment: draftAppt, notes: draftNotes, status: draftStatus, photos: draftPhotos, repUsername: draftRep, repOverridden: draftRep !== lead.repUsername ? true : lead.repOverridden, log: [...prevLog, entry] });
     onClose();
   }
 
@@ -185,6 +200,35 @@ function LeadPanel({ lead, isAdmin, repOptions, onClose, onSave }: PanelProps) {
           <button onClick={save} style={BTN_GREEN}>Save</button>
           <button onClick={() => { setDraftStatus(null); setDraftNotes(''); }} style={BTN_GREY}>Clear status</button>
         </div>
+
+        {(lead.log && lead.log.length > 0) && (
+          <>
+            <div style={{ ...LABEL_S, marginTop: 22 }}>Activity log</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, position: 'relative' }}>
+              {/* vertical line */}
+              <div style={{ position: 'absolute', left: 7, top: 8, bottom: 8, width: 1, background: '#232d28' }} />
+              {[...lead.log].reverse().map((entry, i) => {
+                const sd = STATUS_DEFS.find(s => s.key === entry.status);
+                return (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 10, paddingBottom: 14, position: 'relative' }}>
+                    {/* dot */}
+                    <div style={{ width: 15, height: 15, borderRadius: '50%', background: sd ? sd.color : '#232d28', border: '2px solid #121815', marginTop: 1, flexShrink: 0, zIndex: 1 }} />
+                    <div style={{ background: '#0e1410', border: '1px solid #1e2820', borderRadius: 9, padding: '9px 11px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: sd ? sd.color : '#5d6b64', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                          {sd ? sd.label : 'No status'}
+                        </span>
+                        <span style={{ fontSize: 10.5, color: '#4a5a52' }}>{fmtLog(entry.timestamp)}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#8abfb0', marginTop: 3 }}>{entry.byName}</div>
+                      {entry.notes && <div style={{ fontSize: 12.5, color: '#9caea5', marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{entry.notes}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -484,7 +528,7 @@ export default function SalesRepPortal() {
 
       {/* Panels */}
       {panelLead && (
-        <LeadPanel lead={panelLead} isAdmin={isAdmin} repOptions={repOptions} onClose={() => setPanelLeadId(null)}
+        <LeadPanel lead={panelLead} isAdmin={isAdmin} repOptions={repOptions} session={session!} onClose={() => setPanelLeadId(null)}
           onSave={updated => persistLeads(leads.map(l => l.id === updated.id ? updated : l))}
         />
       )}

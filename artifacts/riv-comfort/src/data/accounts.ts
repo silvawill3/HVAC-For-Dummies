@@ -26,6 +26,14 @@ export const STATUS_DEFS = [
   { key: 'nogo', label: 'No go', color: '#6b4f7a' },
 ];
 
+export interface LogEntry {
+  timestamp: string;   // ISO 8601
+  status: string | null;
+  notes: string;
+  byUsername: string;
+  byName: string;
+}
+
 export interface StoredLead {
   id: number;
   name: string;
@@ -40,6 +48,7 @@ export interface StoredLead {
   photos: string[];
   repOverridden?: boolean;
   fromList?: boolean;
+  log?: LogEntry[];
 }
 
 export const LEADS_KEY = 'rivcomfort_leads_v2';
