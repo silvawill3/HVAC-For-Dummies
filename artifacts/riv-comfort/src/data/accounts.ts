@@ -15,6 +15,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   { username: 'athomas', password: 'sales123', role: 'rep', name: 'Atreyu Thomas' },
   { username: 'cbuckland', password: 'sales123', role: 'rep', name: 'Chris Buckland' },
   { username: 'arusso', password: 'sales123', role: 'rep', name: 'Antonio Russo' },
+  { username: 'afuller', password: 'sales123', role: 'rep', name: 'Andrew Fuller' },
 ];
 
 export const STATUS_DEFS = [
