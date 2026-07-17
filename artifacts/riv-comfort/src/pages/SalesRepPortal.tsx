@@ -66,7 +66,12 @@ function loadLeads(): StoredLead[] {
   // Merge: keep stored user data (assignments, status, notes, log) for existing leads,
   // but always include any new leads added to the static data.
   const storedById = new Map(stored.map(l => [l.id, l]));
-  const merged = fresh.map(l => storedById.get(l.id) ?? l);
+  const merged = fresh.map(l => {
+    const s = storedById.get(l.id);
+    if (!s) return l;
+    // Always use fresh city (already normalized); keep all other user-stored fields
+    return { ...s, city: l.city };
+  });
 
   // Persist the merged result immediately so new leads are saved going forward.
   try { localStorage.setItem(LEADS_KEY, JSON.stringify(merged)); } catch {}
