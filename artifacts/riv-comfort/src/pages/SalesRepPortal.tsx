@@ -19,7 +19,9 @@ function loadCityAssignments(): Record<string, string[]> {
       const parsed = JSON.parse(r);
       const out: Record<string, string[]> = {};
       for (const [city, val] of Object.entries(parsed)) {
-        out[city] = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+        const key = normalizeCity(city);
+        const arr = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+        out[key] = [...(out[key] || []), ...arr];
       }
       return out;
     }
@@ -63,14 +65,15 @@ function loadLeads(): StoredLead[] {
 
   if (!stored || !stored.length) return fresh;
 
-  // Merge: keep stored user data (assignments, status, notes, log) for existing leads,
-  // but always include any new leads added to the static data.
-  const storedById = new Map(stored.map(l => [l.id, l]));
+  // Merge: match by name+address (stable across ID changes) so user data
+  // (repUsername, status, notes, log) survives any restructuring of static data.
+  const storedByKey = new Map(stored.map(l => [`${l.name}|${l.address}`, l]));
   const merged = fresh.map(l => {
-    const s = storedById.get(l.id);
+    const key = `${l.name}|${l.address}`;
+    const s = storedByKey.get(key);
     if (!s) return l;
-    // Always use fresh city (already normalized); keep all other user-stored fields
-    return { ...s, city: l.city };
+    // Use fresh id and city (both may have shifted); preserve all user-entered fields
+    return { ...s, id: l.id, city: l.city };
   });
 
   // Persist the merged result immediately so new leads are saved going forward.

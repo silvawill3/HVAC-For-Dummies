@@ -27,10 +27,12 @@ function loadAssignments(): Record<string, string[]> {
     const r = localStorage.getItem(CITY_ASSIGN_KEY);
     if (r) {
       const parsed = JSON.parse(r);
-      // migrate old format (string values) to arrays
+      // migrate old format (string values) to arrays; normalize city key casing
       const out: Record<string, string[]> = {};
       for (const [city, val] of Object.entries(parsed)) {
-        out[city] = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+        const key = city.trim().replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+        const arr = Array.isArray(val) ? (val as string[]) : val ? [val as string] : [];
+        out[key] = [...(out[key] || []), ...arr];
       }
       return out;
     }
