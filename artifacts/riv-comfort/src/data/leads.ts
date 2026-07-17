@@ -103,7 +103,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "CORONA",
+    "city": "Corona",
     "count": 3,
     "leads": [
       {
@@ -741,7 +741,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "FONTANA",
+    "city": "Fontana",
     "count": 1,
     "leads": [
       {
@@ -1171,7 +1171,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "JURUPA VALLEY",
+    "city": "Jurupa Valley",
     "count": 1,
     "leads": [
       {
@@ -1218,7 +1218,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "LAKE ELSINORE",
+    "city": "Lake Elsinore",
     "count": 2,
     "leads": [
       {
@@ -1439,7 +1439,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "MENIFEE",
+    "city": "Menifee",
     "count": 2,
     "leads": [
       {
@@ -2161,7 +2161,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "PERRIS",
+    "city": "Perris",
     "count": 2,
     "leads": [
       {
@@ -2333,7 +2333,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "RIALTO",
+    "city": "Rialto",
     "count": 1,
     "leads": [
       {
@@ -2346,7 +2346,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "RIVERSIDE",
+    "city": "Riverside",
     "count": 1,
     "leads": [
       {
@@ -2663,7 +2663,7 @@ export const LEADS_BY_CITY: CityBlock[] = [
     ]
   },
   {
-    "city": "SAN BERNARDINO",
+    "city": "San Bernardino",
     "count": 2,
     "leads": [
       {
