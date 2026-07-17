@@ -141,6 +141,16 @@ function LeadPanel({ lead, isAdmin, repOptions, onClose, onSave }: PanelProps) {
 
         <label style={LABEL_S}>Phone</label>
         <input type="text" value={draftPhone} onChange={e => setDraftPhone(e.target.value)} placeholder="(555) 555-5555" style={INPUT_S} />
+        {draftPhone.trim() && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 6, marginBottom: 4 }}>
+            <a href={`tel:${draftPhone.replace(/\D/g, '')}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#182019', border: '1px solid #3a5c4a', color: '#8abfb0', padding: '9px 10px', borderRadius: 8, fontSize: 13, fontFamily: "'Inter',sans-serif", fontWeight: 600, textDecoration: 'none' }}>
+              📞 Call
+            </a>
+            <a href={`sms:${draftPhone.replace(/\D/g, '')}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#182019', border: '1px solid #3a5c4a', color: '#8abfb0', padding: '9px 10px', borderRadius: 8, fontSize: 13, fontFamily: "'Inter',sans-serif", fontWeight: 600, textDecoration: 'none' }}>
+              💬 Text
+            </a>
+          </div>
+        )}
 
         <label style={LABEL_S}>Appointment</label>
         <input type="datetime-local" value={draftAppt} onChange={e => setDraftAppt(e.target.value)} style={INPUT_S} />
