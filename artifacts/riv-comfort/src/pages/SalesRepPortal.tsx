@@ -359,6 +359,7 @@ export default function SalesRepPortal() {
   const [panelLeadId, setPanelLeadId] = useState<number | null>(null);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [repsPanelOpen, setRepsPanelOpen] = useState(false);
+  const [expandedRepCities, setExpandedRepCities] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -517,22 +518,66 @@ export default function SalesRepPortal() {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {visibleLeads.map(lead => {
-                const bs = badgeStyle(lead.status);
-                return (
-                  <div key={lead.id} onClick={() => setPanelLeadId(lead.id)} style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 14, background: '#121815', border: '1px solid #232d28', borderRadius: 10, padding: '12px 14px', cursor: 'pointer' }}>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#eef3f0' }}>{lead.name}{lead.fromList && <span style={{ marginLeft: 7, fontSize: 11, fontWeight: 600, color: '#7aacb8' }}>(BE Install)</span>}</div>
-                      <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
-                      <div style={{ fontSize: 11, color: '#5d6b64', marginTop: 2 }}>{fmtAppt(lead.appointment)}{lead.category ? ` · ${lead.category}` : ''}</div>
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-            {visibleLeads.length === 0 && <div style={{ textAlign: 'center', padding: '50px 20px', color: '#5d6b64', fontSize: 14 }}>No stops match your filter.</div>}
+            {(() => {
+              // Group visible leads by city
+              const cityOrder: string[] = [];
+              const byCity: Record<string, StoredLead[]> = {};
+              visibleLeads.forEach(lead => {
+                const c = lead.city || 'Uncategorized';
+                if (!byCity[c]) { byCity[c] = []; cityOrder.push(c); }
+                byCity[c].push(lead);
+              });
+
+              if (cityOrder.length === 0) return <div style={{ textAlign: 'center', padding: '50px 20px', color: '#5d6b64', fontSize: 14 }}>No stops match your filter.</div>;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {cityOrder.map(city => {
+                    const cityLeads = byCity[city];
+                    const logged = cityLeads.filter(l => l.status && l.status !== 'none').length;
+                    const isOpen = expandedRepCities.has(city);
+                    return (
+                      <div key={city} style={{ border: '1px solid #232d28', borderRadius: 10, background: '#121815' }}>
+                        <div
+                          onClick={() => setExpandedRepCities(prev => {
+                            const next = new Set(prev);
+                            next.has(city) ? next.delete(city) : next.add(city);
+                            return next;
+                          })}
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, color: '#5d6b64', transition: 'transform .12s', transform: isOpen ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
+                            <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 20, fontWeight: 600, color: '#eef3f0' }}>{city}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 12, color: '#9caea5' }}>{cityLeads.length} stops</span>
+                            <span style={{ fontSize: 11, color: logged === cityLeads.length ? '#6fae8f' : '#5d6b64', fontWeight: 600 }}>{logged}/{cityLeads.length} logged</span>
+                          </div>
+                        </div>
+                        {isOpen && (
+                          <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {cityLeads.map(lead => {
+                              const bs = badgeStyle(lead.status);
+                              return (
+                                <div key={lead.id} onClick={() => setPanelLeadId(lead.id)} style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 14, background: '#182019', border: '1px solid #232d28', borderRadius: 9, padding: '12px 14px', cursor: 'pointer' }}>
+                                  <div>
+                                    <div style={{ fontSize: 14, fontWeight: 500, color: '#eef3f0' }}>{lead.name}{lead.fromList && <span style={{ marginLeft: 7, fontSize: 11, fontWeight: 600, color: '#7aacb8' }}>(BE Install)</span>}</div>
+                                    <div onClick={e => { e.stopPropagation(); openMaps(lead.address); }} style={{ fontSize: 12.5, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
+                                    <div style={{ fontSize: 11, color: '#5d6b64', marginTop: 2 }}>{fmtAppt(lead.appointment)}{lead.category ? ` · ${lead.category}` : ''}</div>
+                                  </div>
+                                  <div style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
