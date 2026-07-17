@@ -39,6 +39,7 @@ export interface StoredLead {
   appointment: string;
   photos: string[];
   repOverridden?: boolean;
+  fromList?: boolean;
 }
 
 export const LEADS_KEY = 'rivcomfort_leads_v2';

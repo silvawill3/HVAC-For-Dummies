@@ -291,7 +291,7 @@ export default function LeadsRouteSheet() {
                         <div key={i} style={{ display: 'grid', gridTemplateColumns: '32px 1fr auto', alignItems: 'center', gap: 12, background: '#182019', border: '1px solid #232d28', borderRadius: 9, padding: '10px 12px' }}>
                           <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, fontWeight: 600, color: '#5d6b64', textAlign: 'center' }}>{lead.stop}</div>
                           <div>
-                            <div style={{ fontSize: 13.5, fontWeight: 500, color: '#eef3f0' }}>{lead.name}</div>
+                            <div style={{ fontSize: 13.5, fontWeight: 500, color: '#eef3f0' }}>{lead.name}<span style={{ marginLeft: 7, fontSize: 11, fontWeight: 600, color: '#7aacb8' }}>(BE Install)</span></div>
                             <div onClick={() => openMaps(lead.address)} style={{ fontSize: 12, color: '#9caea5', marginTop: 2, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(155,217,189,0.4)' }}>{lead.address}</div>
                           </div>
                           <div style={{ fontSize: 10.5, fontWeight: 600, padding: '4px 9px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.04em', whiteSpace: 'nowrap', background: bs.bg, color: bs.color }}>{bs.label}</div>
