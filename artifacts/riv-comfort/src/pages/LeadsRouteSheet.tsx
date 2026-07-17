@@ -263,7 +263,7 @@ export default function LeadsRouteSheet() {
           {cityBlocks.map(block => {
             const isSaved = savedCity === block.city;
             return (
-              <div key={block.city} style={{ background: '#121815', border: '1px solid #232d28', borderRadius: 10, overflow: 'hidden' }}>
+              <div key={block.city} style={{ background: '#121815', border: '1px solid #232d28', borderRadius: 10 }}>
                 <div onClick={() => toggleCity(block.city)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12, color: '#5d6b64', display: 'inline-block', transition: 'transform .12s ease', transform: block.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
