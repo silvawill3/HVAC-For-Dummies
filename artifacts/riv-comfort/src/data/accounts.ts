@@ -19,16 +19,19 @@ export const DEFAULT_ACCOUNTS: Account[] = [
 ];
 
 export const STATUS_DEFS = [
-  { key: 'nothome', label: 'Not home', color: '#7d8883' },
+  { key: 'nothome',    label: 'Not home',   color: '#7d8883' },
   { key: 'interested', label: 'Interested', color: '#dcb45c' },
-  { key: 'callback', label: 'Callback', color: '#d08a52' },
-  { key: 'closed', label: 'Closed', color: '#6fae8f' },
-  { key: 'dq', label: 'DQ', color: '#a15a5a' },
-  { key: 'nogo', label: 'No go', color: '#6b4f7a' },
+  { key: 'callback',   label: 'Callback',   color: '#d08a52' },
+  { key: 'apptset',    label: 'Appt set',   color: '#5a8fd0' },
+  { key: 'closed',     label: 'Closed',     color: '#6fae8f' },
+  { key: 'dq',         label: 'DQ',         color: '#a15a5a' },
+  { key: 'nogo',       label: 'No go',      color: '#6b4f7a' },
 ];
 
+export type LeadType = 'be' | 'funnel' | 'personal';
+
 export interface LogEntry {
-  timestamp: string;   // ISO 8601
+  timestamp: string;
   status: string | null;
   notes: string;
   byUsername: string;
@@ -49,10 +52,34 @@ export interface StoredLead {
   photos: string[];
   repOverridden?: boolean;
   fromList?: boolean;
+  leadType?: LeadType;
   log?: LogEntry[];
 }
 
-export const LEADS_KEY = 'rivcomfort_leads_v2';
-export const SESSION_KEY = 'rivcomfort_session_v1';
-export const REPS_KEY = 'rivcomfort_reps_v1';
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string;   // YYYY-MM-DD
+  time: string;   // HH:MM or ''
+  notes: string;
+  linkedLeadId?: number;
+  repUsername: string;
+}
+
+export interface DailyEntry {
+  repUsername: string;
+  date: string; // YYYY-MM-DD
+  doorsKnocked: number;
+  notHome: number;
+  notInterested: number;
+  appointmentsSet: number;
+  appointmentsSat: number;
+  dealsClosed: number;
+}
+
+export const LEADS_KEY       = 'rivcomfort_leads_v2';
+export const SESSION_KEY     = 'rivcomfort_session_v1';
+export const REPS_KEY        = 'rivcomfort_reps_v1';
 export const CITY_ASSIGN_KEY = 'rivcomfort_city_assignments_v1';
+export const CALENDAR_KEY    = 'rivcomfort_calendar_v1';
+export const TRACKER_KEY     = 'rivcomfort_tracker_v1';
