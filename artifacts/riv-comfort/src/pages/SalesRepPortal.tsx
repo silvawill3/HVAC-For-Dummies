@@ -764,9 +764,19 @@ export default function SalesRepPortal() {
   }, [leads, session, isAdmin]);
 
   // ── Admin lead filtering ────────────────────────────────────────────────────
+  // A lead belongs to a rep if: (a) repUsername matches, OR (b) it's a BE lead
+  // and the rep is assigned to that city via the route sheet.
   const adminLeads = useMemo(() => {
+    const cityAssignments = loadCityAssignments();
+    function belongsToRep(l: StoredLead, username: string) {
+      if (l.repUsername === username) return true;
+      if ((l.fromList || l.leadType === 'be') && l.city) {
+        return (cityAssignments[l.city] || []).includes(username);
+      }
+      return false;
+    }
     let out = leads.filter(l => l.leadType !== 'personal');
-    if (repFilter !== 'all') out = out.filter(l => l.repUsername === repFilter);
+    if (repFilter !== 'all') out = out.filter(l => belongsToRep(l, repFilter));
     if (statusFilter !== 'all') out = out.filter(l => (l.status || 'none') === statusFilter);
     const t = search.trim().toLowerCase();
     if (t) out = out.filter(l => l.name.toLowerCase().includes(t) || l.address.toLowerCase().includes(t) || (l.city || '').toLowerCase().includes(t));
@@ -774,7 +784,18 @@ export default function SalesRepPortal() {
   }, [leads, repFilter, statusFilter, search]);
 
   const adminCounts = useMemo(() => {
-    const base = leads.filter(l => l.leadType !== 'personal' && (repFilter === 'all' || l.repUsername === repFilter));
+    const cityAssignments = loadCityAssignments();
+    function belongsToRep(l: StoredLead, username: string) {
+      if (l.repUsername === username) return true;
+      if ((l.fromList || l.leadType === 'be') && l.city) {
+        return (cityAssignments[l.city] || []).includes(username);
+      }
+      return false;
+    }
+    const base = leads.filter(l =>
+      l.leadType !== 'personal' &&
+      (repFilter === 'all' || belongsToRep(l, repFilter))
+    );
     const c: Record<string, number> = { total: base.length };
     STATUS_DEFS.forEach(s => { c[s.key] = base.filter(l => l.status === s.key).length; });
     c.none = base.filter(l => !l.status).length;
