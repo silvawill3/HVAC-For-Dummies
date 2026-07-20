@@ -749,7 +749,15 @@ export default function SalesRepPortal() {
         .filter(([, users]) => users.includes(session.username))
         .map(([city]) => city)
     );
-    const be = leads.filter(l => (l.fromList || l.leadType === 'be') && l.leadType !== 'funnel' && l.leadType !== 'personal' && l.city && myCities.has(l.city));
+    const be = leads.filter(l =>
+      (l.fromList || l.leadType === 'be') &&
+      l.leadType !== 'funnel' &&
+      l.leadType !== 'personal' &&
+      (
+        (l.city && myCities.has(l.city)) ||
+        l.repUsername === session.username
+      )
+    );
     const funnel = leads.filter(l => l.leadType === 'funnel' && l.repUsername === session.username);
     const personal = leads.filter(l => l.leadType === 'personal' && l.repUsername === session.username);
     return { beLeads: be, funnelLeads: funnel, personalLeads: personal, allRepLeads: [...be, ...funnel, ...personal] };
