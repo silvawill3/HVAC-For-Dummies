@@ -77,9 +77,33 @@ export interface DailyEntry {
   dealsClosed: number;
 }
 
-export const LEADS_KEY       = 'rivcomfort_leads_v2';
-export const SESSION_KEY     = 'rivcomfort_session_v1';
-export const REPS_KEY        = 'rivcomfort_reps_v1';
-export const CITY_ASSIGN_KEY = 'rivcomfort_city_assignments_v1';
-export const CALENDAR_KEY    = 'rivcomfort_calendar_v1';
-export const TRACKER_KEY     = 'rivcomfort_tracker_v1';
+export interface PermitLead {
+  id: string;
+  address: string;
+  city: string;
+  permitIssued: string;
+  year: number;
+  priority: 'high' | 'medium' | 'low';
+  contractorName: string;
+  contractorPhone: string;
+  description: string;
+  systemAge: number | null;
+  jobValuation: number | null;
+  lat: number | null;
+  lng: number | null;
+  // Tracking fields
+  knocked: boolean;
+  spokeToHomeowner: boolean;
+  appointment: string;
+  membership: boolean;
+  followUpDate: string;
+  notes: string;
+}
+
+export const LEADS_KEY        = 'rivcomfort_leads_v2';
+export const SESSION_KEY      = 'rivcomfort_session_v1';
+export const REPS_KEY         = 'rivcomfort_reps_v1';
+export const CITY_ASSIGN_KEY  = 'rivcomfort_city_assignments_v1';
+export const CALENDAR_KEY     = 'rivcomfort_calendar_v1';
+export const TRACKER_KEY      = 'rivcomfort_tracker_v1';
+export const PERMIT_LEADS_KEY = 'rivcomfort_permit_leads_v1';

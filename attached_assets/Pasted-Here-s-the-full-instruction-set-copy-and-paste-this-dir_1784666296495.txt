@@ -1,0 +1,50 @@
+Here's the full instruction set — copy and paste this directly into Replit:
+
+---
+
+**Add a new "Permit Leads" tab to the field sales app, matching the existing dark theme and card style used by the Better Earth Leads, Funnel Leads, and My Solar Leads sections.**
+
+**1. CSV Upload**
+- Add an "Upload CSV" button on the Permit Leads tab, same style as the existing CSV upload button on My Solar Leads.
+- The CSV will include these columns: Address, City, Permit Issued, Year, Priority, Contractor Name, Contractor Phone, Description, Est. System Age (Yrs), Job Valuation, Lat, Lng.
+- Parse and store this data so it persists after upload (same way leads are stored elsewhere in the app).
+
+**2. Organize by City**
+- After upload, show a list of cities found in the data (e.g., Anaheim), each as a tappable card showing the city name and total lead count — same visual style as the existing lead category cards.
+- Tapping a city opens that city's leads.
+
+**3. Year Filter (dropdown)**
+- Inside a city, add a dropdown filter with these options:
+  - All Years
+  - 🔴 High Priority (2000–2011)
+  - 🟡 Medium Priority (2012–2015)
+  - 🟢 Low Priority (2016–2026)
+  - Each individual year, listed separately
+- Selecting an option filters the visible leads accordingly.
+
+**4. Route Optimization (High/Medium priority only)**
+- Add a second toggle/button labeled "Optimize Route" that only appears when the current filtered view contains exclusively High or Medium priority leads. It should never appear when Low priority leads are in the visible list.
+- When toggled on, re-sort the visible leads using a nearest-neighbor routing algorithm based on each lead's Lat/Lng coordinates, so the list order approximates the shortest driving path between them (start from the first lead, always jump to the closest unvisited lead next).
+- Show the stop number (1, 2, 3...) next to each address when route mode is active.
+- If Lat/Lng is missing for a lead, place it at the end of the route list rather than breaking the sort.
+
+**5. Clickable Address**
+- Every lead's address must be a tappable link that opens Apple Maps (or Google Maps) with that address pre-filled, so tapping it launches turn-by-turn navigation.
+
+**6. Contractor/Company Field — Competitive Intelligence**
+- Prominently display the Contractor Name and Contractor Phone on every lead card — this is the company that pulled the original permit and already worked on that home's system.
+- Label this field clearly, e.g. "Last serviced by:" so it's immediately visible without needing to tap into details.
+- This is intentional: knowing which competitor already has a foothold at that address helps our reps tailor the pitch (e.g., know who to displace, or identify homes serviced by low-quality/unlicensed contractors as easier conversions).
+- Add a simple text search/filter within a city's lead list that lets a rep search by contractor name, so we can quickly pull "every home serviced by Competitor X" if needed.
+
+**7. Lead Card Fields (in order)**
+- Address (clickable)
+- Stop number (only in route mode)
+- Year / System Age / Priority tag (color-coded to match the priority dot: red/yellow/green)
+- Last serviced by: [Contractor Name] — [Contractor Phone]
+- Description (what was done on the original permit)
+- Existing tracking fields already used elsewhere in the app: Knocked, Spoke to Homeowner, Appointment, Membership, Follow-Up Date, Notes
+
+---
+
+One implementation note worth telling Replit's agent directly: **the CSV won't have Lat/Lng filled in yet** — that needs a one-time geocoding pass (Google Geocoding API or free OpenStreetMap Nominatim) run against the addresses before the route feature will actually work. Worth including that as a setup task in the same prompt if you want Replit to handle it end-to-end.

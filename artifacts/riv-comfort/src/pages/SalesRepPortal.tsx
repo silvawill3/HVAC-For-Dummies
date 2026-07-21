@@ -7,6 +7,7 @@ import {
 import { LEADS_BY_CITY } from '@/data/leads';
 import RepCalendar from '@/components/RepCalendar';
 import { RepTracker, AdminTrackerDashboard } from '@/components/DailyTracker';
+import PermitLeads from '@/components/PermitLeads';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function normalizeCity(city: string): string {
@@ -673,11 +674,11 @@ function MySolarSection({ leads, onOpen, onAddLead, onUploadCSV, session, nextId
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 function TabBar({ tab, setTab }: { tab: string; setTab: (t: any) => void }) {
-  const tabs = [{ id: 'leads', label: 'Leads' }, { id: 'calendar', label: 'Calendar' }, { id: 'numbers', label: 'Numbers' }];
+  const tabs = [{ id: 'leads', label: 'Leads' }, { id: 'permits', label: 'Permits' }, { id: 'calendar', label: 'Calendar' }, { id: 'numbers', label: 'Numbers' }];
   return (
     <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderBottom: '1px solid #232d28' }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: 'none', border: 'none', borderBottom: tab === t.id ? '2px solid #8abfb0' : '2px solid transparent', color: tab === t.id ? '#8abfb0' : '#5d6b64', padding: '10px 8px', fontSize: 13.5, fontFamily: "'Inter',sans-serif", fontWeight: tab === t.id ? 600 : 400, cursor: 'pointer', marginBottom: -1 }}>
+        <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: 'none', border: 'none', borderBottom: tab === t.id ? '2px solid #8abfb0' : '2px solid transparent', color: tab === t.id ? '#8abfb0' : '#5d6b64', padding: '10px 4px', fontSize: 12.5, fontFamily: "'Inter',sans-serif", fontWeight: tab === t.id ? 600 : 400, cursor: 'pointer', marginBottom: -1 }}>
           {t.label}
         </button>
       ))}
@@ -699,13 +700,13 @@ export default function SalesRepPortal() {
   const [repFilter, setRepFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [adminTab, setAdminTab] = useState<'leads' | 'numbers'>('leads');
+  const [adminTab, setAdminTab] = useState<'leads' | 'permits' | 'numbers'>('leads');
   const [addBEOpen, setAddBEOpen] = useState(false);
   const [addFunnelOpen, setAddFunnelOpen] = useState(false);
   const [repsPanelOpen, setRepsPanelOpen] = useState(false);
 
   // Rep state
-  const [repTab, setRepTab] = useState<'leads' | 'calendar' | 'numbers'>('leads');
+  const [repTab, setRepTab] = useState<'leads' | 'permits' | 'calendar' | 'numbers'>('leads');
 
   // Shared
   const [panelLeadId, setPanelLeadId] = useState<number | null>(null);
@@ -842,8 +843,8 @@ export default function SalesRepPortal() {
   if (isAdmin) {
     const AdminTabBar = () => (
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderBottom: '1px solid #232d28' }}>
-        {[{ id: 'leads', label: 'Leads' }, { id: 'numbers', label: 'Rep Numbers' }].map(t => (
-          <button key={t.id} onClick={() => setAdminTab(t.id as any)} style={{ flex: 1, background: 'none', border: 'none', borderBottom: adminTab === t.id ? '2px solid #8abfb0' : '2px solid transparent', color: adminTab === t.id ? '#8abfb0' : '#5d6b64', padding: '10px 8px', fontSize: 13.5, fontFamily: "'Inter',sans-serif", fontWeight: adminTab === t.id ? 600 : 400, cursor: 'pointer', marginBottom: -1 }}>{t.label}</button>
+        {[{ id: 'leads', label: 'Leads' }, { id: 'permits', label: 'Permits' }, { id: 'numbers', label: 'Rep Numbers' }].map(t => (
+          <button key={t.id} onClick={() => setAdminTab(t.id as any)} style={{ flex: 1, background: 'none', border: 'none', borderBottom: adminTab === t.id ? '2px solid #8abfb0' : '2px solid transparent', color: adminTab === t.id ? '#8abfb0' : '#5d6b64', padding: '10px 8px', fontSize: 13, fontFamily: "'Inter',sans-serif", fontWeight: adminTab === t.id ? 600 : 400, cursor: 'pointer', marginBottom: -1 }}>{t.label}</button>
         ))}
       </div>
     );
@@ -909,6 +910,7 @@ export default function SalesRepPortal() {
             </>
           )}
 
+          {adminTab === 'permits' && <PermitLeads />}
           {adminTab === 'numbers' && <AdminTrackerDashboard repOptions={repOptions} />}
 
           {/* Modals */}
@@ -950,6 +952,9 @@ export default function SalesRepPortal() {
             <MySolarSection leads={personalLeads} onOpen={setPanelLeadId} onAddLead={l => persistLeads([...leads, l])} onUploadCSV={ls => persistLeads([...leads, ...ls])} session={session!} nextId={nextId + personalLeads.length} />
           </>
         )}
+
+        {/* Permits tab */}
+        {repTab === 'permits' && <PermitLeads />}
 
         {/* Calendar tab */}
         {repTab === 'calendar' && (
